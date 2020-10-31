@@ -15,7 +15,6 @@ router.get('/', (req, res) => {
 })
 
 router.get('/:query', (req, res) => {
-  console.log('entro aca')
   const query = querystring.parse(req.params.query)
   controller.getByQuery(query)
     .then((data) => {

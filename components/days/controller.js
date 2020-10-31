@@ -149,7 +149,7 @@ const markSchedules = async (body) => {
   if (!body.id) throw Error('No se encontro el id.')
   const today = DateTime.local()
   const dayName = today.get('weekdayShort')
-  if (dayName === 'Sat' || dayName === 'Sun') throw Error('Día no laboral.')
+  /* if (dayName === 'Sat' || dayName === 'Sun') throw Error('Día no laboral.') */
   /* if (today.hour <= 7 || today.hour >= 19) throw Error('Horario no laboral.') */
 
   const startedDay = await store.query('days', '*', `employee_id = ${body.id} AND day_date = '${today.toSQLDate()}'`)
