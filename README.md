@@ -5,7 +5,7 @@
 Employees won't be able to mark out of their workspaces.
 It executes all the necessary rawlogic to bring clean and ordered info from the DB to electron and android clients.
 
-_Not finished yet_
+_Not finished yet, WIP._
 
 ## Tools
 
