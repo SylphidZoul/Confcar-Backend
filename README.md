@@ -7,6 +7,11 @@ It executes all the necessary rawlogic to bring clean and ordered info from the 
 
 _Not finished yet, WIP._
 
+## Clients
+
+* [Android](https://github.com/SylphidZoul/Confcar-AndroidClient)
+* [Electron/PC](https://github.com/SylphidZoul/Confcar-AndroidClient)
+
 ## Tools
 
 * [express js](https://expressjs.com/)
