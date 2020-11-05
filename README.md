@@ -10,7 +10,7 @@ _Not finished yet, WIP._
 ## Clients
 
 * [Android](https://github.com/SylphidZoul/Confcar-AndroidClient)
-* [Electron/PC](https://github.com/SylphidZoul/Confcar-AndroidClient)
+* [Electron/PC](https://github.com/SylphidZoul/Confcar-AdminClient)
 
 ## Tools
 
