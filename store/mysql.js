@@ -43,8 +43,8 @@ const list = (table, select) => {
   })
 }
 
-const get = (table, id, isEmployee) => {
-  const where = isEmployee ? 'employee_id' : 'id'
+const get = (table, id) => {
+  const where = (table === 'employees') ? 'employee_id' : 'id'
   return new Promise((resolve, reject) => {
     connection.query(`SELECT * FROM ${table} WHERE ?? = ?`, [where, id], (err, data) => {
       if (err) return reject(err)
@@ -54,18 +54,19 @@ const get = (table, id, isEmployee) => {
 }
 
 const insert = (table, data) => {
-  const isEmployee = (table === 'employees') && true
   return new Promise((resolve, reject) => {
     connection.query(`INSERT INTO ${table} SET ?`, data, (err, data) => {
       if (err) return reject(err)
-      resolve(get(table, data.insertId, isEmployee))
+      resolve(get(table, data.insertId))
     })
   })
 }
 
 const update = (table, data) => {
+  const where = (table === 'employees') ? 'employee_id' : 'id'
+  const { id, ...update } = data
   return new Promise((resolve, reject) => {
-    connection.query(`UPDATE ${table} SET ? WHERE id=?`, [data, data.id], (err, result) => {
+    connection.query(`UPDATE ${table} SET ? WHERE ?? = ?`, [update, where, id], (err, result) => {
       if (err) return reject(err)
       resolve(get(table, data.id))
     })
@@ -73,10 +74,10 @@ const update = (table, data) => {
 }
 
 const upsert = async (table, data) => {
-  if (!data.id) {
-    return insert(table, data)
-  } else {
+  if (data.id) {
     return update(table, data)
+  } else {
+    return insert(table, data)
   }
 }
 
@@ -109,6 +110,7 @@ const remove = (table, query) => {
 }
 
 module.exports = {
+  connection,
   list,
   get,
   upsert,

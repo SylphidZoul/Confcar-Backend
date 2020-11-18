@@ -19,7 +19,32 @@ router.post('/', (req, res) => {
       response.success(req, res, data, 201)
     })
     .catch((err) => {
-      response.error(req, res, err.message, 504, err)
+      console.log(err.message)
+      response.error(req, res, err.message, 400, err)
+    })
+})
+
+router.put('/', (req, res) => {
+  controller.update(req.body)
+    .then((data) => {
+      console.log(data)
+      response.success(req, res, data, 201)
+    })
+    .catch((err) => {
+      console.log(err.message)
+      response.error(req, res, err.message, 400, err)
+    })
+})
+
+router.delete('/:id', (req, res) => {
+  controller.remove(req.params.id)
+    .then((data) => {
+      console.log(data)
+      response.success(req, res, data, 201)
+    })
+    .catch((err) => {
+      console.log(err.message)
+      response.error(req, res, err.message, 400, err)
     })
 })
 

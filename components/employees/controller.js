@@ -15,15 +15,20 @@ const login = async (body) => {
   return employeeId[0]
 }
 
-const signup = (body) => {
-  const employee = {
-    fullname: body.fullname,
-    dni: body.dni,
-    password: body.password,
-    mobile: body.mobile,
-    hourly_pay: body.hourly_pay
+const signup = async (body) => {
+  const requiredFields = ['fullname', 'dni', 'password', 'mobile', 'hourly_pay']
+  const employee = requiredFields.reduce((employee, key) => {
+    if (body[key] === '') throw Error('Datos faltantes.')
+    return { ...employee, [key]: body[key] }
+  }, {})
+
+  try {
+    const newEmployee = await store.upsert(table, employee)
+    return newEmployee
+  } catch (error) {
+    console.log(error)
+    throw Error('El DNI debe ser único.')
   }
-  return store.upsert(table, employee)
 }
 
 const upsert = (body) => {
@@ -31,17 +36,31 @@ const upsert = (body) => {
   return login(body)
 }
 
-const updateEmployee = async (body) => {
-  if (!body.employee_id) throw Error('Id faltante.')
+const update = async (body) => {
+  if (!body.id) throw Error('Id faltante.')
 
-  const employeeExist = await store.get(table, body.employee_id, true)
+  const employeeExist = await store.get(table, body.id, true)
 
   if (employeeExist.length === 0) throw Error('No se encontro ese empleado.')
+
+  const updateEmployee = await store.upsert(table, body)
+
+  return updateEmployee
+}
+
+const remove = async (id) => {
+  const employeeExist = await store.get(table, id, true)
+
+  if (employeeExist.length === 0) throw Error('No se encontro ese empleado.')
+
+  return store.remove(table, `employee_id = ${id}`)
 }
 
 module.exports = {
   list,
   login,
   signup,
-  upsert
+  upsert,
+  update,
+  remove
 }

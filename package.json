@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "nodemon app.js"
+    "start": "nodemon app.js",
+    "test": "jest"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -13,16 +14,19 @@
     "querystring": "^0.2.0"
   },
   "devDependencies": {
-    "standard": "^14.3.4"
-  },
-  "babel": {
-    "presets": [
-      "react"
-    ]
+    "jest": "^26.6.3",
+    "standard": "^14.3.4",
+    "supertest": "^6.0.1"
   },
   "standard": {
     "ignore": [
       "/api/**"
+    ]
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
     ]
   },
   "eslintConfig": {

@@ -72,7 +72,7 @@ const getDateDetails = async (date, id) => {
     `day_date='${date}' and days.employee_id=${id}`,
     { employees: 'employee_id' })
 
-  if (dbResponse.length === 0) throw Error('No se ha podido encontrar esa fecha')
+  if (dbResponse.length === 0) throw Error('No se ha podido encontrar la fecha de ese empleado.')
 
   const details = dbResponse[0]
 
@@ -101,13 +101,7 @@ const getDateDetails = async (date, id) => {
   return { ...formatedDetails, workedHours }
 }
 
-const getEmployeeSummary = async (id, week) => {
-  let weekNumber
-  if (!week) {
-    weekNumber = DateTime.local().weekNumber
-  } else {
-    weekNumber = week
-  }
+const getEmployeeSummary = async (id, weekNumber) => {
   const rawHours = await getHoursPerWeek(id, weekNumber)
   const weekHours = rawHours.toFormat('hh:mm')
   const [{ fullname, hourly_pay: hourlyPay }] = await store.query('employees', 'fullname, hourly_pay', `employee_id = ${id}`)
@@ -119,14 +113,21 @@ const getEmployeeSummary = async (id, week) => {
     return await getDateDetails(formatedDate, id)
   }))
 
-  return { weekHours, weekPay, fullname, rawHours, detailedDays }
+  return { weekHours, weekPay, fullname, rawHours, detailedDays, weekNumber }
 }
 
-const getWeekTotalSummary = async () => {
+const getWeekTotalSummary = async (week) => {
+  let weekNumber
+  if (!week) {
+    weekNumber = DateTime.local().weekNumber
+  } else {
+    weekNumber = DateTime.fromJSDate(new Date(week)).weekNumber
+  }
+  console.log(weekNumber)
   const employeesId = await store.list('employees', 'employee_id')
 
   const detailsPerEmployee = await Promise.all(employeesId.map(async (employee) => {
-    const employeeHours = await getEmployeeSummary(employee.employee_id)
+    const employeeHours = await getEmployeeSummary(employee.employee_id, weekNumber)
     return employeeHours
   }))
 
@@ -135,12 +136,13 @@ const getWeekTotalSummary = async () => {
   })
   const hours = total.rawHours.toFormat('h:m')
 
-  return { hours, pay: total.weekPay, detailsPerEmployee }
+  return { hours, pay: total.weekPay, detailsPerEmployee, weekNumber }
 }
 
 const getByQuery = async (query) => {
-  if (query.date && query.employee_id) return getDateDetails(query.date, query.employee_id)
-  if (query.employee_id) return getEmployeeSummary(query.employee_id, query.week)
+  if (query.date && query.employee_id) return getDateDetails(DateTime.fromJSDate(new Date(query.date)), query.employee_id)
+  if (query.employee_id) return getEmployeeSummary(query.employee_id, DateTime.local().weekNumber)
+  if (query.week) return getWeekTotalSummary(query.week)
 
   throw Error('Parametros inválidos')
 }
@@ -194,14 +196,14 @@ const updateDate = async (body) => {
   if (!body.date || !body.employee_id) throw Error('Datos faltantes')
 
   const dayExist = await store.query('days', 'id',
-    `day_date = '${body.date}' and employee_id = ${body.employee_id}`
+    `day_date = '${DateTime.fromJSDate(new Date(body.date))}' and employee_id = ${body.employee_id}`
   )
 
   if (dayExist.length === 0) throw Error('No se encontro esa fecha.')
 
   const dayUpdate = scheduleKeys.reduce((update, key) => {
     if (Object.prototype.hasOwnProperty.call(body, key)) {
-      update[key] = body[key]
+      update[key] = DateTime.fromJSDate(new Date(`${body.date} ${body[key]}`))
     }
     return update
   }, { id: dayExist[0].id })
@@ -228,6 +230,7 @@ const deleteDate = async (query) => {
 }
 
 module.exports = {
+  getHoursPerDay,
   getWeekTotalSummary,
   getByQuery,
   markSchedules,
