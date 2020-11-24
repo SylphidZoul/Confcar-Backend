@@ -2,7 +2,14 @@ const table = 'employees'
 const store = require('../../store/mysql')
 
 const list = () => {
-  return store.list(table, '*')
+  return store.query(table, 'employee_id, fullname, dni, password, mobile, hourly_pay', 'active = 1')
+}
+
+const getByQuery = (query) => {
+  if (Object.prototype.hasOwnProperty.call(query, 'active')) {
+    return store.query(table, 'employee_id, fullname, dni, password, mobile, hourly_pay', 'active = 0')
+  }
+  throw Error('Parametros inválidos')
 }
 
 const login = async (body) => {
@@ -26,7 +33,6 @@ const signup = async (body) => {
     const newEmployee = await store.upsert(table, employee)
     return newEmployee
   } catch (error) {
-    console.log(error)
     throw Error('El DNI debe ser único.')
   }
 }
@@ -43,9 +49,9 @@ const update = async (body) => {
 
   if (employeeExist.length === 0) throw Error('No se encontro ese empleado.')
 
-  const updateEmployee = await store.upsert(table, body)
+  const { active, ...updatedEmployee } = await store.upsert(table, body)
 
-  return updateEmployee
+  return updatedEmployee
 }
 
 const remove = async (id) => {
@@ -53,11 +59,12 @@ const remove = async (id) => {
 
   if (employeeExist.length === 0) throw Error('No se encontro ese empleado.')
 
-  return store.remove(table, `employee_id = ${id}`)
+  return store.upsert(table, { id, active: !employeeExist.active })
 }
 
 module.exports = {
   list,
+  getByQuery,
   login,
   signup,
   upsert,

@@ -18,7 +18,7 @@ const handleConnection = () => {
       console.log('[db error]', err)
       setTimeout(() => handleConnection, 2000)
     } else {
-      console.log('DB connected!')
+      console.log('[DB connected!]')
     }
   })
 

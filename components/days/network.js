@@ -5,6 +5,7 @@ const querystring = require('querystring')
 const response = require('../../utils/response')
 
 router.get('/', (req, res) => {
+  console.log('semanas')
   controller.getWeekTotalSummary()
     .then((data) => {
       response.success(req, res, data, 200)
@@ -16,6 +17,7 @@ router.get('/', (req, res) => {
 
 router.get('/:query', (req, res) => {
   const query = querystring.parse(req.params.query)
+  console.log(query)
   controller.getByQuery(query)
     .then((data) => {
       response.success(req, res, data, 200)

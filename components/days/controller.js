@@ -48,7 +48,7 @@ const getHoursPerDay = (rawDay) => {
 const getHoursPerWeek = async (id, week) => {
   const workedWeek = await store.query('days',
     'day_start, lunch_start, lunch_end, day_end, extraPause_start, extraPause_end',
-    `employee_id = ${id} AND week = ${week}`
+    `employee_id = ${id} and week = ${week} AND year(day_date) = ${DateTime.local().year}`
   )
   if (workedWeek.length === 0) return Duration.fromMillis(0)
 
@@ -83,7 +83,8 @@ const getDateDetails = async (date, id) => {
       return DateTime.fromJSDate(details[key])
     })
 
-  const workedHours = getHoursPerDay(luxonDates).toFormat('hh:mm')
+  const rawHours = getHoursPerDay(luxonDates)
+  const workedHours = rawHours.toFormat('hh:mm')
 
   const formatedDetails = Object.keys(details).reduce((acc, key) => {
     if (!scheduleKeys.includes(key)) {
@@ -98,7 +99,7 @@ const getDateDetails = async (date, id) => {
     return { ...acc, [key]: formatedTime }
   }, {})
 
-  return { ...formatedDetails, workedHours }
+  return { ...formatedDetails, workedHours, rawHours }
 }
 
 const getEmployeeSummary = async (id, weekNumber) => {
@@ -123,8 +124,8 @@ const getWeekTotalSummary = async (week) => {
   } else {
     weekNumber = DateTime.fromJSDate(new Date(week)).weekNumber
   }
-  console.log(weekNumber)
-  const employeesId = await store.list('employees', 'employee_id')
+
+  const employeesId = await store.query('employees', 'employee_id', 'active = 1')
 
   const detailsPerEmployee = await Promise.all(employeesId.map(async (employee) => {
     const employeeHours = await getEmployeeSummary(employee.employee_id, weekNumber)
@@ -139,10 +140,56 @@ const getWeekTotalSummary = async (week) => {
   return { hours, pay: total.weekPay, detailsPerEmployee, weekNumber }
 }
 
+const getLargePeriodSummary = async (query) => {
+  let selectedYear = 0
+  if (!query.year) {
+    selectedYear = DateTime.local().year
+  } else {
+    selectedYear = DateTime.fromJSDate(new Date(query.date)).year
+  }
+
+  const employeesData = await store.list('employees', 'employee_id, fullname, hourly_pay')
+
+  const workedDaysPerEmployee = await Promise.all(employeesData.map(async (employee) => {
+    let where = `employee_id = ${employee.employee_id} and year(day_date) = ${selectedYear}`
+    if (query.month) {
+      where += ` and month(day_date) = ${DateTime.fromJSDate(new Date(query.date)).month}`
+    }
+    const days = await store.query('days', 'day_date', where)
+    return { ...employee, days }
+  }))
+
+  const detailedPeriodPerEmployee = await Promise.all(workedDaysPerEmployee.map(async (employee) => {
+    const dayDetail = await Promise.all(employee.days.map(async (day) => {
+      const formatedDate = DateTime.fromJSDate(day.day_date).toSQLDate()
+      const details = await getDateDetails(formatedDate, employee.employee_id)
+      return details
+    }))
+    return { ...employee, dayDetail }
+  }))
+
+  const periodSummary = detailedPeriodPerEmployee.map((employee) => {
+    const employeePeriod = employee.dayDetail.reduce((acc, day) => {
+      const pay = Math.ceil(day.rawHours.as('hours') * employee.hourly_pay)
+      return { hours: acc.hours.plus(day.rawHours), pay: acc.pay + (pay) }
+    }, { hours: Duration.fromMillis(0), pay: 0 })
+    return { fullname: employee.fullname, ...employeePeriod, hours: employeePeriod.hours.toFormat('h:m'), rawHours: employeePeriod.hours }
+  })
+
+  const periodTotal = periodSummary.reduce((acc, employee) => {
+    return { hours: acc.hours.plus(employee.rawHours), pay: acc.pay + employee.pay }
+  }, { hours: Duration.fromMillis(0), pay: 0 })
+
+  const periodNumber = query.month ? `${DateTime.fromJSDate(new Date(query.date)).month}/${selectedYear}` : selectedYear
+
+  return { ...periodTotal, hours: periodTotal.hours.toFormat('h:m'), detailsPerEmployee: periodSummary, periodNumber }
+}
+
 const getByQuery = async (query) => {
   if (query.date && query.employee_id) return getDateDetails(DateTime.fromJSDate(new Date(query.date)), query.employee_id)
   if (query.employee_id) return getEmployeeSummary(query.employee_id, DateTime.local().weekNumber)
   if (query.week) return getWeekTotalSummary(query.week)
+  if (query.year || query.month) return getLargePeriodSummary(query)
 
   throw Error('Parametros inválidos')
 }
