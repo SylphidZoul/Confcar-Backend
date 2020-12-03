@@ -1,6 +1,7 @@
 const { DateTime, Duration } = require('luxon')
 const scheduleKeys = ['day_start', 'lunch_start', 'lunch_end', 'day_end', 'extraPause_start', 'extraPause_end']
 const store = require('../../store/mysql')
+const logger = require('../../utils/log4js')
 
 const getHoursPerDay = (rawDay) => {
   const [dayStart, lunchStart, lunchEnd, dayEnd, pauseStart, pauseEnd] = rawDay
@@ -8,7 +9,7 @@ const getHoursPerDay = (rawDay) => {
   if ((dayStart && !lunchStart) || (lunchEnd && !dayEnd)) {
     const today = DateTime.local()
     if (today.day !== dayStart.day || today.hour > 19) {
-      console.error(`Día ${dayStart.toISODate()} no cerrado correctamente`)
+      logger.error(dayStart.toISODate())
       return Duration.fromMillis(0)
     }
   }
@@ -105,7 +106,7 @@ const getDateDetails = async (date, id) => {
 const getEmployeeSummary = async (id, weekNumber) => {
   const rawHours = await getHoursPerWeek(id, weekNumber)
   const weekHours = rawHours.toFormat('hh:mm')
-  const [{ fullname, hourly_pay: hourlyPay }] = await store.query('employees', 'fullname, hourly_pay', `employee_id = ${id}`)
+  const [{ fullname, hourly_pay: hourlyPay }] = await store.query('employees', 'fullname, hourly_pay', `employee_id = ${id}`) // or fetch /employees
   const weekPay = Math.ceil(rawHours.as('hours') * hourlyPay)
 
   const weekDates = await store.query('days', 'day_date', `week = ${weekNumber} and employee_id = ${id}`)
@@ -125,7 +126,7 @@ const getWeekTotalSummary = async (week) => {
     weekNumber = DateTime.fromJSDate(new Date(week)).weekNumber
   }
 
-  const employeesId = await store.query('employees', 'employee_id', 'active = 1')
+  const employeesId = await store.query('employees', 'employee_id', 'active = 1') // or fetch /employees
 
   const detailsPerEmployee = await Promise.all(employeesId.map(async (employee) => {
     const employeeHours = await getEmployeeSummary(employee.employee_id, weekNumber)
@@ -148,7 +149,7 @@ const getLargePeriodSummary = async (query) => {
     selectedYear = DateTime.fromJSDate(new Date(query.date)).year
   }
 
-  const employeesData = await store.list('employees', 'employee_id, fullname, hourly_pay')
+  const employeesData = await store.list('employees', 'employee_id, fullname, hourly_pay') // or fetch /employees
 
   const workedDaysPerEmployee = await Promise.all(employeesData.map(async (employee) => {
     let where = `employee_id = ${employee.employee_id} and year(day_date) = ${selectedYear}`
@@ -277,7 +278,6 @@ const deleteDate = async (query) => {
 }
 
 module.exports = {
-  getHoursPerDay,
   getWeekTotalSummary,
   getByQuery,
   markSchedules,

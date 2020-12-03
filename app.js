@@ -1,5 +1,4 @@
 const express = require('express')
-const path = require('path')
 const employees = require('./components/employees/network')
 const days = require('./components/days/network')
 const config = require('./config')
