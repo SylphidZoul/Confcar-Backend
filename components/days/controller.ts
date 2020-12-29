@@ -1,7 +1,8 @@
-const { DateTime, Duration } = require('luxon')
+import { DateTime, Duration } from 'luxon'
+import store from '../../store/mysql'
+import logger from '../../utils/log4js'
+
 const scheduleKeys = ['day_start', 'lunch_start', 'lunch_end', 'day_end', 'extraPause_start', 'extraPause_end']
-const store = require('../../store/mysql')
-const logger = require('../../utils/log4js')
 
 const getHoursPerDay = (rawDay) => {
   const [dayStart, lunchStart, lunchEnd, dayEnd, pauseStart, pauseEnd] = rawDay

@@ -1,17 +1,12 @@
-const mysql = require('mysql')
-const config = require('../config')
+import { Connection, createConnection } from 'mysql'
+import { config } from '../config'
 
-const dbconf = {
-  host: config.mysql.host,
-  user: config.mysql.user,
-  password: config.mysql.password,
-  database: config.mysql.database
-}
+const { port, ...dbconf } = config.mysql
 
-let connection
+let connection: Connection
 
 const handleConnection = () => {
-  connection = mysql.createConnection(dbconf)
+  connection = createConnection(dbconf)
 
   connection.connect((err) => {
     if (err) {
@@ -110,7 +105,6 @@ const remove = (table, query) => {
 }
 
 module.exports = {
-  connection,
   list,
   get,
   upsert,

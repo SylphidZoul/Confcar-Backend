@@ -1,8 +1,8 @@
-const express = require('express')
-const employees = require('./components/employees/network')
-const days = require('./components/days/network')
-const config = require('./config')
-const cors = require('cors')
+import express from 'express'
+import employees from './components/employees/network'
+import days from './components/days/network'
+import { config } from './config'
+import cors from 'cors'
 
 const app = express()
 app.use(cors())
@@ -16,4 +16,3 @@ app.listen(config.api.port, () => {
   console.log('Escuchando puerto: ', config.api.port)
 })
 
-module.exports = app
