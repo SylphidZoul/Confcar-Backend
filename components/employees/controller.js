@@ -5,9 +5,10 @@ const list = () => {
   return store.query(table, 'employee_id, fullname, dni, password, mobile, hourly_pay', 'active = 1')
 }
 
-const getByQuery = (query) => {
+const getByQuery = async (query) => {
   if (Object.prototype.hasOwnProperty.call(query, 'active')) {
-    return store.query(table, 'employee_id, fullname, dni, password, mobile, hourly_pay', 'active = 0')
+    const inactiveEmployees = await store.query(table, 'employee_id, fullname, dni, password, mobile, hourly_pay', 'active = 0')
+    return inactiveEmployees
   }
   throw Error('Parametros inválidos')
 }
@@ -47,7 +48,7 @@ const update = async (body) => {
 
   const employeeExist = await store.get(table, body.id, true)
 
-  if (employeeExist.length === 0) throw Error('No se encontro ese empleado.')
+  if (!employeeExist) throw Error('No se encontro ese empleado.')
 
   const { active, ...updatedEmployee } = await store.upsert(table, body)
 
@@ -57,7 +58,7 @@ const update = async (body) => {
 const remove = async (id) => {
   const employeeExist = await store.get(table, id, true)
 
-  if (employeeExist.length === 0) throw Error('No se encontro ese empleado.')
+  if (!employeeExist) throw Error('No se encontro ese empleado.')
 
   return store.upsert(table, { id, active: !employeeExist.active })
 }

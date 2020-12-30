@@ -1,4 +1,4 @@
-exports.success = (req, res, message, status) => {
+exports.success = (res, message, status) => {
   const statusCode = status || 200
   const statusMessage = message || ''
 
@@ -8,7 +8,7 @@ exports.success = (req, res, message, status) => {
     body: statusMessage
   })
 }
-exports.error = (req, res, message, status, err) => {
+exports.error = (res, message, status, err) => {
   const statusCode = status || 500
   const statusMessage = message || 'Internal server error'
   if (err) console.error(err)

@@ -15,5 +15,3 @@ app.use('/days', days)
 app.listen(config.api.port, () => {
   console.log('Escuchando puerto: ', config.api.port)
 })
-
-module.exports = app
