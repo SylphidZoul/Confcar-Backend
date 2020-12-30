@@ -2,13 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 class Response {
 }
-Response.success = (res, message, status) => {
+Response.success = (res, data, status) => {
     const statusCode = status || 200;
-    const statusMessage = message || '';
     res.status(statusCode).send({
         error: false,
-        status: status,
-        body: statusMessage
+        status,
+        body: data
     });
 };
 Response.error = (res, message, status, err) => {
@@ -18,7 +17,7 @@ Response.error = (res, message, status, err) => {
         console.error(err);
     res.status(statusCode).send({
         error: true,
-        status: status,
+        status,
         body: statusMessage
     });
 };

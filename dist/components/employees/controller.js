@@ -1,3 +1,4 @@
+"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -18,26 +19,31 @@ var __rest = (this && this.__rest) || function (s, e) {
         }
     return t;
 };
-const table = 'employees';
-const store = require('../../store/mysql');
-const list = () => {
-    return store.query(table, 'employee_id, fullname, dni, password, mobile, hourly_pay', 'active = 1');
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+Object.defineProperty(exports, "__esModule", { value: true });
+const mysql_1 = __importDefault(require("../../store/mysql"));
+const table = 'employees';
+const list = () => __awaiter(void 0, void 0, void 0, function* () {
+    const employeesList = yield mysql_1.default.instance.query(table, 'employee_id, fullname, dni, password, mobile, hourly_pay', 'active = 1');
+    return employeesList;
+});
 const getByQuery = (query) => {
     if (Object.prototype.hasOwnProperty.call(query, 'active')) {
-        return store.query(table, 'employee_id, fullname, dni, password, mobile, hourly_pay', 'active = 0');
+        return mysql_1.default.instance.query(table, 'employee_id, fullname, dni, password, mobile, hourly_pay', 'active = 0');
     }
-    throw Error('Parametros inválidos');
+    return Promise.reject({ status: 400, message: 'Parametros inválidos' });
 };
-const login = (body) => __awaiter(this, void 0, void 0, function* () {
+const login = (body) => __awaiter(void 0, void 0, void 0, function* () {
     if (!body.dni || !body.password)
         throw Error('Datos faltantes');
-    const employeeId = yield store.query(table, 'employee_id', `dni = ${body.dni} and password = '${body.password}'`);
-    if (employeeId.length === 0)
+    const employeeId = yield mysql_1.default.instance.query(table, 'employee_id', `dni = ${body.dni} and password = '${body.password}'`);
+    if (!employeeId)
         throw Error('Datos incorrectos');
     return employeeId[0];
 });
-const signup = (body) => __awaiter(this, void 0, void 0, function* () {
+const signup = (body) => __awaiter(void 0, void 0, void 0, function* () {
     const requiredFields = ['fullname', 'dni', 'password', 'mobile', 'hourly_pay'];
     const employee = requiredFields.reduce((employee, key) => {
         if (body[key] === '')
@@ -45,7 +51,7 @@ const signup = (body) => __awaiter(this, void 0, void 0, function* () {
         return Object.assign(Object.assign({}, employee), { [key]: body[key] });
     }, {});
     try {
-        const newEmployee = yield store.upsert(table, employee);
+        const newEmployee = yield mysql_1.default.instance.upsert(table, employee);
         return newEmployee;
     }
     catch (error) {
@@ -57,22 +63,22 @@ const upsert = (body) => {
         return signup(body);
     return login(body);
 };
-const update = (body) => __awaiter(this, void 0, void 0, function* () {
+const update = (body) => __awaiter(void 0, void 0, void 0, function* () {
     if (!body.id)
         throw Error('Id faltante.');
-    const employeeExist = yield store.get(table, body.id, true);
-    if (employeeExist.length === 0)
+    const employeeExist = yield mysql_1.default.instance.get(table, body.id);
+    if (!employeeExist)
         throw Error('No se encontro ese empleado.');
-    const _a = yield store.upsert(table, body), { active } = _a, updatedEmployee = __rest(_a, ["active"]);
+    const _a = yield mysql_1.default.instance.upsert(table, body), { active } = _a, updatedEmployee = __rest(_a, ["active"]);
     return updatedEmployee;
 });
-const remove = (id) => __awaiter(this, void 0, void 0, function* () {
-    const employeeExist = yield store.get(table, id, true);
-    if (employeeExist.length === 0)
+const remove = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const employeeExist = yield mysql_1.default.instance.get(table, parseInt(id));
+    if (!employeeExist)
         throw Error('No se encontro ese empleado.');
-    return store.upsert(table, { id, active: !employeeExist.active });
+    return mysql_1.default.instance.upsert(table, { id, active: !employeeExist.active });
 });
-module.exports = {
+exports.default = {
     list,
     getByQuery,
     login,

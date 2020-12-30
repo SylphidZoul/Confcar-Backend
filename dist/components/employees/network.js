@@ -1,53 +1,58 @@
-const express = require('express');
-const router = express.Router();
-const controller = require('./controller');
-const querystring = require('querystring');
-const response = require('../../utils/response');
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const controller_1 = __importDefault(require("./controller"));
+const querystring_1 = __importDefault(require("querystring"));
+const response_1 = __importDefault(require("../../utils/response"));
+const router = express_1.default.Router();
 router.get('/', (req, res) => {
-    controller.list()
+    controller_1.default.list()
         .then((data) => {
-        response.success(req, res, data, 200);
+        response_1.default.success(res, data, 200);
     })
         .catch((err) => {
-        response.error(req, res, 'Error en el servidor', 504, err);
+        response_1.default.error(res, 'Error en el servidor', 504, err);
     });
 });
 router.get('/:query', (req, res) => {
-    const query = querystring.parse(req.params.query);
-    controller.getByQuery(query)
+    const query = querystring_1.default.parse(req.params.query);
+    controller_1.default.getByQuery(query)
         .then((data) => {
-        response.success(req, res, data, 200);
+        response_1.default.success(res, data, 200);
     })
         .catch((err) => {
-        response.error(req, res, 'Error en el servidor', 504, err);
+        response_1.default.error(res, err.message, err.status, err);
     });
 });
 router.post('/', (req, res) => {
-    controller.upsert(req.body)
+    controller_1.default.upsert(req.body)
         .then((data) => {
-        response.success(req, res, data, 201);
+        response_1.default.success(res, data, 201);
     })
         .catch((err) => {
-        response.error(req, res, err.message, 400, err);
+        response_1.default.error(res, err.message, 400, err);
     });
 });
 router.put('/', (req, res) => {
-    controller.update(req.body)
+    controller_1.default.update(req.body)
         .then((data) => {
-        response.success(req, res, data, 201);
+        response_1.default.success(res, data, 201);
     })
         .catch((err) => {
-        response.error(req, res, err.message, 400, err);
+        response_1.default.error(res, err.message, 400, err);
     });
 });
 router.delete('/:id', (req, res) => {
-    controller.remove(req.params.id)
+    controller_1.default.remove(req.params.id)
         .then((data) => {
-        response.success(req, res, data, 201);
+        response_1.default.success(res, data, 201);
     })
         .catch((err) => {
-        response.error(req, res, err.message, 400, err);
+        response_1.default.error(res, err.message, 400, err);
     });
 });
-module.exports = router;
+exports.default = router;
 //# sourceMappingURL=network.js.map

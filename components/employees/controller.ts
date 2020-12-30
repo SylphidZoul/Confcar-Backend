@@ -1,28 +1,29 @@
+import store from '../../store/mysql'
 const table = 'employees'
-const store = require('../../store/mysql')
 
-const list = () => {
-  return store.query(table, 'employee_id, fullname, dni, password, mobile, hourly_pay', 'active = 1')
+const list = async () => {
+  const employeesList: Array<EmployeeData> = await store.instance.query(table, 'employee_id, fullname, dni, password, mobile, hourly_pay', 'active = 1')
+  return employeesList
 }
 
-const getByQuery = (query) => {
+const getByQuery = (query: EmployeeData) => {
   if (Object.prototype.hasOwnProperty.call(query, 'active')) {
-    return store.query(table, 'employee_id, fullname, dni, password, mobile, hourly_pay', 'active = 0')
+    return store.instance.query(table, 'employee_id, fullname, dni, password, mobile, hourly_pay', 'active = 0')
   }
-  throw Error('Parametros inválidos')
+  return Promise.reject({ status: 400, message: 'Parametros inválidos'})
 }
 
-const login = async (body) => {
+const login = async (body: any) => {
   if (!body.dni || !body.password) throw Error('Datos faltantes')
 
-  const employeeId = await store.query(table, 'employee_id', `dni = ${body.dni} and password = '${body.password}'`)
+  const employeeId = await store.instance.query(table, 'employee_id', `dni = ${body.dni} and password = '${body.password}'`)
 
-  if (employeeId.length === 0) throw Error('Datos incorrectos')
+  if (!employeeId) throw Error('Datos incorrectos')
 
   return employeeId[0]
 }
 
-const signup = async (body) => {
+const signup = async (body: any) => {
   const requiredFields = ['fullname', 'dni', 'password', 'mobile', 'hourly_pay']
   const employee = requiredFields.reduce((employee, key) => {
     if (body[key] === '') throw Error('Datos faltantes.')
@@ -30,39 +31,39 @@ const signup = async (body) => {
   }, {})
 
   try {
-    const newEmployee = await store.upsert(table, employee)
+    const newEmployee = await store.instance.upsert(table, employee)
     return newEmployee
   } catch (error) {
     throw Error('El DNI debe ser único.')
   }
 }
 
-const upsert = (body) => {
+const upsert = (body: any) => {
   if (body.newEmployee) return signup(body)
   return login(body)
 }
 
-const update = async (body) => {
+const update = async (body: any) => {
   if (!body.id) throw Error('Id faltante.')
 
-  const employeeExist = await store.get(table, body.id, true)
+  const employeeExist = await store.instance.get(table, body.id)
 
-  if (employeeExist.length === 0) throw Error('No se encontro ese empleado.')
+  if (!employeeExist) throw Error('No se encontro ese empleado.')
 
-  const { active, ...updatedEmployee } = await store.upsert(table, body)
+  const { active, ...updatedEmployee } = await store.instance.upsert(table, body)
 
   return updatedEmployee
 }
 
-const remove = async (id) => {
-  const employeeExist = await store.get(table, id, true)
+const remove = async (id: string) => {
+  const employeeExist = await store.instance.get(table, parseInt(id))
 
-  if (employeeExist.length === 0) throw Error('No se encontro ese empleado.')
+  if (!employeeExist) throw Error('No se encontro ese empleado.')
 
-  return store.upsert(table, { id, active: !employeeExist.active })
+  return store.instance.upsert(table, { id, active: !employeeExist.active })
 }
 
-module.exports = {
+export default {
   list,
   getByQuery,
   login,
