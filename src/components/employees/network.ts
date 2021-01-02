@@ -1,6 +1,5 @@
 import express from 'express'
 import controller from './controller'
-import querystring from 'querystring'
 import Response from '../../utils/response'
 const router = express.Router()
 
@@ -15,13 +14,12 @@ router.get('/', (req, res) => {
 })
 
 router.get('/:query', (req, res) => {
-  const query = querystring.parse(req.params.query) as EmployeeData
-  controller.getByQuery(query)
-    .then((data: Array<EmployeeData>) => {
+  controller.getByQuery(req.params.query)
+    .then((data) => {
       Response.success(res, data, 200)
     })
     .catch((err) => {
-      Response.error(res, err.message, err.status, err)
+      Response.error(res, err.message, 400, err)
     })
 })
 

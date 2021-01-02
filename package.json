@@ -11,8 +11,6 @@
     "test": "jest"
   },
   "dependencies": {
-    "@types/luxon": "^1.25.0",
-    "@types/mysql": "^2.15.17",
     "cors": "^2.8.5",
     "express": "~4.16.1",
     "log4js": "^6.3.0",
@@ -21,6 +19,8 @@
     "querystring": "^0.2.0"
   },
   "devDependencies": {
+    "@types/luxon": "^1.25.0",
+    "@types/mysql": "^2.15.17",
     "@types/cors": "^2.8.9",
     "@types/express": "^4.17.9",
     "@types/node": "^14.14.16",

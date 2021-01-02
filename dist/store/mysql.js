@@ -46,13 +46,21 @@ class Store {
                 }
             });
         };
+        this.list = (table, select) => {
+            return new Promise((resolve, reject) => {
+                this.connection.query(`SELECT ${select} FROM ${table}`, (err, data) => {
+                    if (err)
+                        return reject(err);
+                    resolve(data);
+                });
+            });
+        };
         this.get = (table, id) => {
             const where = (table === 'employees') ? 'employee_id' : 'id';
             return new Promise((resolve, reject) => {
                 this.connection.query(`SELECT * FROM ${table} WHERE ?? = ?`, [where, id], (err, data) => {
                     if (err)
                         return reject(err);
-                    console.log(data);
                     resolve(data[0]);
                 });
             });

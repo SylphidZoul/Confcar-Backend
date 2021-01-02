@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const controller_1 = __importDefault(require("./controller"));
-const querystring_1 = __importDefault(require("querystring"));
 const response_1 = __importDefault(require("../../utils/response"));
 const router = express_1.default.Router();
 router.get('/', (req, res) => {
@@ -18,8 +17,7 @@ router.get('/', (req, res) => {
     });
 });
 router.get('/:query', (req, res) => {
-    const query = querystring_1.default.parse(req.params.query);
-    controller_1.default.getByQuery(query)
+    controller_1.default.getByQuery(req.params.query)
         .then((data) => {
         response_1.default.success(res, data, 200);
     })
@@ -46,8 +44,7 @@ router.put('/', (req, res) => {
     });
 });
 router.delete('/:query', (req, res) => {
-    const query = querystring_1.default.parse(req.params.query);
-    controller_1.default.deleteDate(query)
+    controller_1.default.deleteDate(req.params.query)
         .then((data) => {
         response_1.default.success(res, data, 201);
     })

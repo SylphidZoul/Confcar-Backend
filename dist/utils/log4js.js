@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.logger = void 0;
 const log4js_1 = __importDefault(require("log4js"));
 const luxon_1 = require("luxon");
 log4js_1.default.addLayout('date', () => {
@@ -27,6 +28,5 @@ log4js_1.default.configure({
         }
     }
 });
-const logger = log4js_1.default.getLogger();
-module.exports = logger;
+exports.logger = log4js_1.default.getLogger();
 //# sourceMappingURL=log4js.js.map

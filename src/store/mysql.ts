@@ -29,18 +29,26 @@ class Store {
     })
   }
 
-  get = (table: string, id: number): Promise<EmployeeData> => {
+  list = (table: string, select: string) => {
+    return new Promise((resolve, reject) => {
+      this.connection.query(`SELECT ${select} FROM ${table}`, (err, data) => {
+        if (err) return reject(err)
+        resolve(data)
+      })
+    })
+  }
+
+  get = (table: string, id: number): Promise<DBResponse> => {
     const where = (table === 'employees') ? 'employee_id' : 'id'
     return new Promise((resolve, reject) => {
       this.connection.query(`SELECT * FROM ${table} WHERE ?? = ?`, [where, id], (err, data) => {
         if (err) return reject(err)
-        console.log(data)
         resolve(data[0])
       })
     })
   }
 
-  insert = (table: string, data: any): Promise<Promise<EmployeeData>> => {
+  insert = (table: string, data: any): Promise<DBResponse> => {
     return new Promise((resolve, reject) => {
       this.connection.query(`INSERT INTO ${table} SET ?`, data, (err, data) => {
         if (err) return reject(err)
@@ -49,7 +57,7 @@ class Store {
     })
   }
 
-  update = (table: string, data: any) => {
+  update = (table: string, data: any): Promise<DBResponse> => {
     const where = (table === 'employees') ? 'employee_id' : 'id'
     const { id, ...update } = data
     return new Promise((resolve, reject) => {
@@ -60,7 +68,7 @@ class Store {
     })
   }
 
-  upsert = async (table: string, data: any): Promise<Promise<EmployeeData>> => {
+  upsert = async (table: string, data: any) => {
     if (data.id) {
       return this.update(table, data)
     } else {
@@ -68,7 +76,7 @@ class Store {
     }
   }
 
-  query = (table: string, select: string, query: string, join?: any): Promise<DBResponse> => {
+  query = (table: string, select: string, query: string, join?: any): Promise<DBListResponse> => {
     let joinQuery = ''
     if (join) {
       let left = ''

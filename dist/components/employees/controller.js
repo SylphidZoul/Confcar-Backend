@@ -24,24 +24,28 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const mysql_1 = __importDefault(require("../../store/mysql"));
+const querystring_1 = __importDefault(require("querystring"));
 const table = 'employees';
+const employeeFields = 'employee_id, fullname, dni, password, mobile, hourly_pay';
 const list = () => __awaiter(void 0, void 0, void 0, function* () {
-    const employeesList = yield mysql_1.default.instance.query(table, 'employee_id, fullname, dni, password, mobile, hourly_pay', 'active = 1');
+    const employeesList = yield mysql_1.default.instance.query(table, employeeFields, 'active = 1');
     return employeesList;
 });
-const getByQuery = (query) => {
-    if (Object.prototype.hasOwnProperty.call(query, 'active')) {
-        return mysql_1.default.instance.query(table, 'employee_id, fullname, dni, password, mobile, hourly_pay', 'active = 0');
+const getByQuery = (query) => __awaiter(void 0, void 0, void 0, function* () {
+    const parsedQuery = querystring_1.default.parse(query);
+    if (Object.prototype.hasOwnProperty.call(parsedQuery, 'active')) {
+        const inactiveEmployees = yield mysql_1.default.instance.query(table, employeeFields, 'active = 0');
+        return inactiveEmployees;
     }
-    return Promise.reject({ status: 400, message: 'Parametros inválidos' });
-};
+    throw new Error('Parametros inválidos');
+});
 const login = (body) => __awaiter(void 0, void 0, void 0, function* () {
     if (!body.dni || !body.password)
         throw Error('Datos faltantes');
-    const employeeId = yield mysql_1.default.instance.query(table, 'employee_id', `dni = ${body.dni} and password = '${body.password}'`);
+    const [employeeId] = yield mysql_1.default.instance.query(table, 'employee_id', `dni = ${body.dni} and password = '${body.password}'`);
     if (!employeeId)
         throw Error('Datos incorrectos');
-    return employeeId[0];
+    return employeeId;
 });
 const signup = (body) => __awaiter(void 0, void 0, void 0, function* () {
     const requiredFields = ['fullname', 'dni', 'password', 'mobile', 'hourly_pay'];
@@ -69,20 +73,21 @@ const update = (body) => __awaiter(void 0, void 0, void 0, function* () {
     const employeeExist = yield mysql_1.default.instance.get(table, body.id);
     if (!employeeExist)
         throw Error('No se encontro ese empleado.');
-    const _a = yield mysql_1.default.instance.upsert(table, body), { active } = _a, updatedEmployee = __rest(_a, ["active"]);
+    const _a = yield mysql_1.default.instance.upsert(table, body), { active } = _a, rest = __rest(_a, ["active"]);
+    const updatedEmployee = rest;
     return updatedEmployee;
 });
 const remove = (id) => __awaiter(void 0, void 0, void 0, function* () {
     const employeeExist = yield mysql_1.default.instance.get(table, parseInt(id));
     if (!employeeExist)
         throw Error('No se encontro ese empleado.');
-    return mysql_1.default.instance.upsert(table, { id, active: !employeeExist.active });
+    const update = { id, active: !employeeExist.active };
+    const deletedEmployee = yield mysql_1.default.instance.upsert(table, update);
+    return deletedEmployee;
 });
 exports.default = {
     list,
     getByQuery,
-    login,
-    signup,
     upsert,
     update,
     remove

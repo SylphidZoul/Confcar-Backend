@@ -1,6 +1,5 @@
 import express from 'express'
 import controller from './controller'
-import querystring from 'querystring'
 import response from '../../utils/response'
 
 const router = express.Router()
@@ -16,8 +15,7 @@ router.get('/', (req, res) => {
 })
 
 router.get('/:query', (req, res) => {
-  const query = querystring.parse(req.params.query)
-  controller.getByQuery(query)
+  controller.getByQuery(req.params.query)
     .then((data) => {
       response.success(res, data, 200)
     })
@@ -47,8 +45,7 @@ router.put('/', (req, res) => {
 })
 
 router.delete('/:query', (req, res) => {
-  const query = querystring.parse(req.params.query)
-  controller.deleteDate(query)
+  controller.deleteDate(req.params.query)
     .then((data) => {
       response.success(res, data, 201)
     })
