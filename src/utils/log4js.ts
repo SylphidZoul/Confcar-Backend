@@ -1,5 +1,5 @@
-const log4js = require('log4js')
-const { DateTime } = require('luxon')
+import log4js from 'log4js'
+import { DateTime } from 'luxon'
 
 log4js.addLayout('date', () => {
   return (logEvent) => {
@@ -25,6 +25,5 @@ log4js.configure({
   }
 })
 
-const logger = log4js.getLogger()
+export const logger = log4js.getLogger()
 
-module.exports = logger
